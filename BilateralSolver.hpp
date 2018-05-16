@@ -34,7 +34,7 @@
 
 namespace cv
 {
-namespace xim
+namespace ximgproc
 {
 
 // class CV_EXPORTS_W FastBilateralSolverFilter : public Algorithm

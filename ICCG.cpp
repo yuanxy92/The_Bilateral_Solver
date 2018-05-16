@@ -1,16 +1,9 @@
-#include <iostream>
-#include <vector>
-#include <math.h>
+
 #include "ICCG.hpp"
 
 using namespace std;
 
-/*--------------------------------------------------------
-func name : read_elementsCSR
-note	  : x, y座標を指定してデータを読む。デバック用
---------------------------------------------------------*/
-double read_elementsCSR(str_CSR * csr_mat, int i, int j)
-{
+double read_elementsCSR(str_CSR * csr_mat, int i, int j) {
 	int x;
 	int row, row_next;
 	int col;
@@ -33,14 +26,7 @@ double read_elementsCSR(str_CSR * csr_mat, int i, int j)
 	return ret;
 }
 
-
-/*--------------------------------------------------------
-func name : read_elementsCSR_skip
-note	  : x, y座標を指定してデータを読む。
-			使用しているが、あまりよい関数でない
---------------------------------------------------------*/
-double read_elementsCSR_skip(str_CSR * csr_mat, int i, int &j)
-{
+double read_elementsCSR_skip(str_CSR * csr_mat, int i, int &j) {
 	int x;
 	int row;
 	int row_next;
@@ -70,14 +56,7 @@ double read_elementsCSR_skip(str_CSR * csr_mat, int i, int &j)
 	return ret;
 }
 
-
-
-/*--------------------------------------------------------
-func name : rewrite_elementsCS
-note	  : 要素の上書き。デバック用
---------------------------------------------------------*/
-int rewrite_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
-{
+int rewrite_elementsCSR(str_CSR * csr_mat, double val, int i, int j) {
 	int x, row, loop_max, col;
 	int ret = 0;
 
@@ -96,16 +75,11 @@ int rewrite_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 	}
 	else
 	{
-		ret = 1;/*書き込めない場合*/
+		ret = 1;
 	}
 	return ret;
 }
 
-
-/*--------------------------------------------------------
-func name : add_elementsCSR
-note	  : 要素の追加。デバック用
---------------------------------------------------------*/
 int add_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 {
 	int x, row;
@@ -113,7 +87,6 @@ int add_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 	int flg_newrow = 0;
 	int loop_max = csr_mat->str_size;
 
-	//新しい行の追加判定
 	if(csr_mat->row_index[i+1] == 0)
 	{
 		csr_mat->row_size = i+1;
@@ -121,7 +94,6 @@ int add_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 		csr_mat->row_index[0] = 1;
 	}
 
-	//追加先のサーチ
 	row = csr_mat->row_index[i] - 1;
 	for(x = row; x < loop_max; x++)
 	{
@@ -129,7 +101,6 @@ int add_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 			break;
 	}
 
-	//追加処理
 	if( j > csr_mat->col_index[x-1] || flg_newrow == 1)
 	{
 		csr_mat->val[x] = val;
@@ -137,16 +108,12 @@ int add_elementsCSR(str_CSR * csr_mat, double val, int i, int j)
 		csr_mat->row_index[i+1] = x+2;
 	}
 	else
-		ret = 1;	//追加できない場合
+		ret = 1;
 
 	return ret;
 }
 
 
-/*--------------------------------------------------------
-func name : preview_CSR
-note	  : 要素の一覧表示。デバック用
---------------------------------------------------------*/
 void preview_CSR(str_CSR * csr)
 {
 	int i, j;
@@ -163,10 +130,6 @@ void preview_CSR(str_CSR * csr)
 	}
 }
 
-/*--------------------------------------------------------
-func name : make_data
-note	  : サンプルデータを作成する。デバック用
---------------------------------------------------------*/
 void make_data(str_CSR * csr, int r_size)
 {
 	int i, j, k;
@@ -198,29 +161,23 @@ void make_data(str_CSR * csr, int r_size)
 	}
 }
 
-/*--------------------------------------------------------
-func name : executeIcdCsrFormat
-note	  : 不完全コレスキー分解。
-			CSRフォーマット用に高速で動作するように記述
---------------------------------------------------------*/
-void executeIcdCsrFormat(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &vec_d)
-{
-	int 		i, j ,k ,l;		/*loop変数*/
-	int 		loop_k, loop_l;	/*k,lのloop回数を格納*/
-	double 		lld;			/*L行列成分の途中計算を格納*/
-	double * 	tmp_val;	/*L行列のサイズを特定できないので*/
-	int * 		tmp_col;	/*出力データを一時的に格納*/
-	double * 	src_val;	/*配列の要素ポインタ*/
-	int * 		src_col;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row;	/* 同様 */
-	double * 	dst_val;	/* 同様 */
-	int * 		dst_col;	/* 同様 */
-	int * 		dst_row;	/* 同様 */
-	int 		tmp_index=0;
+
+void executeIcdCsrFormat(str_CSR * csr_src, str_CSR * csr_dst, std::vector<double> &vec_d) {
+	int 		i, j, k, l;		
+	int 		loop_k, loop_l;	
+	double 		lld;	
+	double * 	tmp_val;
+	int * 		tmp_col;
+	double * 	src_val;
+	int * 		src_col;
+	int * 		src_row;
+	double * 	dst_val;
+	int * 		dst_col;
+	int * 		dst_row;
+	int 		tmp_index = 0;
 	int 		j_index;
 
-	/*メモリ確保 & 値設定*/
-	csr_dst->row_index = new int [csr_src->row_size +1];
+	csr_dst->row_index = new int[csr_src->row_size + 1];
 	// csr_dst->row_index = new int [csr_src->row_size];
 	std::cout << "csr_src.row_size:" << csr_src->row_size << std::endl;
 
@@ -230,43 +187,37 @@ void executeIcdCsrFormat(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &
 	vec_d.resize(csr_src->row_size);
 	// vec_d = new double [csr_src->row_size];
 
-	/*ひとまず多めにメモリ確保*/
-	tmp_val = new double [csr_src->str_size];
-	tmp_col = new int [csr_src->str_size];
+	tmp_val = new double[csr_src->str_size];
+	tmp_col = new int[csr_src->str_size];
 
-	/*ポインタのセット*/
 	src_val = csr_src->val;
 	src_col = csr_src->col_index;
 	src_row = csr_src->row_index;
 	dst_row = csr_dst->row_index;
 
-	/*１行目のデータは自明*/
 	tmp_val[0] = src_val[0];
 	tmp_col[0] = src_col[0];
 	vec_d[0] = 1.0 / tmp_val[0];
 
-	/*行の開始情報は２行目まで自明*/
 	dst_row[0] = 1;
 	dst_row[1] = 2;
 
 	std::cout << "csr_dst.row_size:" << csr_dst->row_size << std::endl;
-	for(i = 1; i < csr_dst->row_size; i++){
-		for(j = src_row[i]-1; j < src_row[i+1]-1; j++){
+	for (int i = 1; i < csr_dst->row_size; i++) {
+		for (int j = src_row[i] - 1; j < src_row[i + 1] - 1; j++) {
 
-			if( i < src_col[j])
-			{
-				break; /*上三角成分は計算しない*/
+			if (i < src_col[j]) {
+				break;
 			}
 
 			lld = src_val[j];
 			loop_k = j - src_row[i];
-			j_index = src_col[j];	/*for分を見やすくするため*/
+			j_index = src_col[j];
 
-			for(k = dst_row[i]-1; k < dst_row[i]+loop_k; k++){
+			for (k = dst_row[i] - 1; k < dst_row[i] + loop_k; k++) {
 				loop_l = k - dst_row[i] + 1;
-				for(l = dst_row[j_index]-1; l < dst_row[j_index]+loop_l ; l++){
-					if(tmp_col[k] == tmp_col[l])
-					{
+				for (l = dst_row[j_index] - 1; l < dst_row[j_index] + loop_l; l++) {
+					if (tmp_col[k] == tmp_col[l]) {
 						lld -= tmp_val[k] * tmp_val[l] * vec_d[tmp_col[l]];
 					}
 				}
@@ -277,7 +228,7 @@ void executeIcdCsrFormat(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &
 			tmp_col[tmp_index] = src_col[j];
 		}
 		vec_d[i] = 1.0 / tmp_val[tmp_index];
-		dst_row[i+1] = tmp_index+2;
+		dst_row[i + 1] = tmp_index + 2;
 	}
 	// std::cout << __LINE__ << "delete 1" << std::endl;
 	// delete tmp_val;
@@ -285,15 +236,12 @@ void executeIcdCsrFormat(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &
 	// delete tmp_col;
 	// std::cout << __LINE__ << "delete 1" << std::endl;
 
-	/*出力のためのメモリ確保 & ポインタ設定*/
 	csr_dst->col_index = new int [tmp_index+1];
 	csr_dst->val = new double [tmp_index+1];
 	dst_val = csr_dst->val;
 	dst_col = csr_dst->col_index;
 
-	/*tmpのデータを移動*/
-	for(i=0; i<tmp_index+1; i++)
-	{
+	for(i=0; i<tmp_index+1; i++) {
 		dst_val[i] = tmp_val[i];
 		dst_col[i] = tmp_col[i];
 	}
@@ -305,39 +253,33 @@ void executeIcdCsrFormat(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &
 }
 
 
-/*--------------------------------------------------------
-func name : IncompleteCholeskyDecom
-note	  : 不完全コレスキー分解。速度が遅いので未使用
---------------------------------------------------------*/
-void IncompleteCholeskyDecomp(str_CSR * csr_src , str_CSR * csr_dst, vector<double> &vec_d)
-{
-	int 		i, j ,k;		/*loop変数*/
-	double 		lld;			/*L行列成分の途中計算を格納*/
-	double		tmp_val, l_ik, l_jk; /*一時計算用*/
+
+void IncompleteCholeskyDecomp(str_CSR * csr_src, str_CSR * csr_dst, std::vector<double> &vec_d) {
+	int 		i, j, k;		
+	double 		lld;
+	double		tmp_val, l_ik, l_jk;
 	int 		str_size;
 	int			element_count = 1;
 
-   	vec_d.resize(csr_src->row_size);
-	/*多めにメモリ確保するが気にしない*/
-	csr_dst->val = new double [csr_src->str_size]();
-	csr_dst->col_index = new int [csr_src->str_size]();
-	csr_dst->row_index = new int [csr_src->row_size]();
+	vec_d.resize(csr_src->row_size);
+	csr_dst->val = new double[csr_src->str_size]();
+	csr_dst->col_index = new int[csr_src->str_size]();
+	csr_dst->row_index = new int[csr_src->row_size]();
 	csr_dst->str_size = csr_src->str_size;
 	csr_dst->col_size = csr_src->col_size;
 
-	/*１行目のデータは自明*/
 	tmp_val = read_elementsCSR(csr_src, 0, 0);
 	add_elementsCSR(csr_dst, tmp_val, 0, 0);
-	vec_d[0] = 1.0 / read_elementsCSR(csr_dst, 0 ,0);
+	vec_d[0] = 1.0 / read_elementsCSR(csr_dst, 0, 0);
 
-	for(i = 1; i < csr_src->row_size; i++){
-		for(j = 0; j <= i; j++){
+	for (i = 1; i < csr_src->row_size; i++) {
+		for (j = 0; j <= i; j++) {
 
 			lld = read_elementsCSR(csr_src, i, j);
-			if(lld == 0)
+			if (lld == 0)
 				continue;
 
-			for(k = 0; k < j; k++)
+			for (k = 0; k < j; k++)
 			{
 				l_ik = read_elementsCSR(csr_dst, i, k);
 				l_jk = read_elementsCSR(csr_dst, j, k);
@@ -355,12 +297,11 @@ void IncompleteCholeskyDecomp(str_CSR * csr_src , str_CSR * csr_dst, vector<doub
 func name : ICRes
 note	  : 下三角行列による計算。遅いので未使用
 --------------------------------------------------------*/
-void ICRes(str_CSR * csr_matl, vector<double> vec_d, vector<double>  vec_r, vector<double> &vec_u)
-{
+void ICRes(str_CSR * csr_matl, std::vector<double> vec_d, std::vector<double>  vec_r, std::vector<double> &vec_u) {
 	int i, j;
 	double rly;
 	double lu;
-	vector <double> y(csr_matl->row_size);
+	std::vector <double> y(csr_matl->row_size);
 
 	for( i = 0 ; i < csr_matl->row_size ; i++ )
 	{
@@ -381,31 +322,25 @@ void ICRes(str_CSR * csr_matl, vector<double> vec_d, vector<double>  vec_r, vect
 	}
 }
 
-/*--------------------------------------------------------
-func name : ICResCsrFormat
-note	  : 下三角行列による計算。
-　　　　　　CSRフォーマット用に高速化
---------------------------------------------------------*/
-void ICResCsrFormat(str_CSR * csr_matl, str_CSR * csr_matl2, vector<double> vec_d, vector<double>  vec_r, vector<double> &vec_u)
+void ICResCsrFormat(str_CSR * csr_matl, str_CSR * csr_matl2, std::vector<double> vec_d, std::vector<double>  vec_r, std::vector<double> &vec_u)
 {
 	int i, j, k;
 	int j_index;
 	int i_index;
 	double rly;
 	double lu;
-	vector <double> y(csr_matl->row_size);
+	std::vector <double> y(csr_matl->row_size);
 
-	/*ポインタのセット*/
-	double * 	src_val;	/*配列の要素ポインタ*/
-	int * 		src_col;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row;	/* 同様 */
+	double * 	src_val;
+	int * 		src_col;
+	int * 		src_row;
 	src_val = csr_matl->val;
 	src_col = csr_matl->col_index;
 	src_row = csr_matl->row_index;
 
-	double * 	src_val2;	/*配列の要素ポインタ*/
-	int * 		src_col2;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row2;	/* 同様 */
+	double * 	src_val2;
+	int * 		src_col2;
+	int * 		src_row2;
 	src_val2 = csr_matl2->val;
 	src_col2 = csr_matl2->col_index;
 	src_row2 = csr_matl2->row_index;
@@ -415,7 +350,7 @@ void ICResCsrFormat(str_CSR * csr_matl, str_CSR * csr_matl2, vector<double> vec_
 		rly = vec_r[i];
 		for(j = src_row[i]-1; j < src_row[i+1]-2; j++)
 		{
-			j_index = src_col[j];	/*for分を見やすくするため*/
+			j_index = src_col[j];
 			rly -=  y[j_index] * src_val[j];
 		}
 		y[i] = rly/src_val[j];
@@ -426,28 +361,22 @@ void ICResCsrFormat(str_CSR * csr_matl, str_CSR * csr_matl2, vector<double> vec_
 		lu = 0.0;
 		for(j = src_row2[i]-1; j < src_row2[i+1]-2; j++)
 		{
-			i_index = csr_matl2->row_size - 1 - src_col2[j];	/*for分を見やすくするため*/
+			i_index = csr_matl2->row_size - 1 - src_col2[j];
 			lu +=  vec_u[i_index] * src_val2[j];
 		}
-		i_index = csr_matl2->row_size - 1 - i;	/*for分を見やすくするため*/
+		i_index = csr_matl2->row_size - 1 - i;
 		vec_u[i_index] = y[i_index]-vec_d[i_index]*lu;
 	}
 }
 
-
-/*--------------------------------------------------------
-func name : make_CSRcolIndex
-note	  : CSRフォーマットに対応した内積計算
---------------------------------------------------------*/
 void make_CSRcolIndex(str_CSR * csr_mat_l, str_CSR_colsort * csr_col)
 {
 	int i, j;
 	int cnt;
 
-	double * 	src_val;	/*配列の要素ポインタ*/
-	int * 		src_col;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row;	/* 同様 */
-	/*ポインタのセット*/
+	double * 	src_val;
+	int * 		src_col;
+	int * 		src_row;
 	src_val = csr_mat_l->val;
 	src_col = csr_mat_l->col_index;
 	src_row = csr_mat_l->row_index;
@@ -471,17 +400,12 @@ void make_CSRcolIndex(str_CSR * csr_mat_l, str_CSR_colsort * csr_col)
 }
 
 
-/*--------------------------------------------------------
-func name : ApproximateSolution0
-note	  : 第0近似解を求める。
---------------------------------------------------------*/
-void ApproximateSolution0(str_CSR * csr_mat, vector<double> vec_b, vector<double> vec_x, vector<double> &vec_r)
+void ApproximateSolution0(str_CSR * csr_mat, std::vector<double> vec_b, std::vector<double> vec_x, std::vector<double> &vec_r)
 {
 	int i, j;
 	int j_index;
 	double ax;
 
-    // 第0近似解に対する残差の計算
 	for( i = 0 ; i < csr_mat->row_size ; i++ )
 	{
 		ax = 0.0;
@@ -495,11 +419,7 @@ void ApproximateSolution0(str_CSR * csr_mat, vector<double> vec_b, vector<double
 }
 
 
-/*--------------------------------------------------------
-func name : dot
-note	  : ベクトルの内積
---------------------------------------------------------*/
-double dot(vector<double> vec1, vector<double> vec2, int n)
+double dot(std::vector<double> vec1, std::vector<double> vec2, int n)
 {
 	double ret = 0;
 	for(int i = 0; i < n; ++i){
@@ -510,11 +430,7 @@ double dot(vector<double> vec1, vector<double> vec2, int n)
 }
 
 
-/*--------------------------------------------------------
-func name : dot_CSR
-note	  : CSRフォーマットに対応した内積計算
---------------------------------------------------------*/
-double dot_CSR(str_CSR * csr_mat, vector<double> &vec2, int row)
+double dot_CSR(str_CSR * csr_mat, std::vector<double> &vec2, int row)
 {
 	int row_s = csr_mat->row_index[row] - 1;
 	int row_e = csr_mat->row_index[row+1] - 1;
@@ -525,12 +441,6 @@ double dot_CSR(str_CSR * csr_mat, vector<double> &vec2, int row)
 	return ret;
 }
 
-
-/*--------------------------------------------------------
-func name : transposition_Lmatrix
-note	  : 行列Lを転置する。共役勾配法を高速化するために行う。
-			本プログラムで一番重い処理。loopを工夫する必要あり。
---------------------------------------------------------*/
 void transposition_Lmatrix(str_CSR * csr_mat, str_CSR_colsort * csr_col, str_CSR * csr_mat2)
 {
 	int i, j, k;
@@ -539,15 +449,15 @@ void transposition_Lmatrix(str_CSR * csr_mat, str_CSR_colsort * csr_col, str_CSR
 	int col_index;
 	int count = 0;
 
-	double * 	src_val;	/*配列の要素ポインタ*/
-	int * 		src_col;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row;	/* 同様 */
+	double * 	src_val;
+	int * 		src_col;
+	int * 		src_row;
 	src_val = csr_mat->val;
 	src_col = csr_mat->col_index;
 	src_row = csr_mat->row_index;
-	double * 	src_val2;	/*配列の要素ポインタ*/
-	int * 		src_col2;	/*(アロー演算子の記述が面倒なので)*/
-	int * 		src_row2;	/* 同様 */
+	double * 	src_val2;
+	int * 		src_col2;
+	int * 		src_row2;
 	int			skip_cnt;
 	int			skip_cnt2;
 
@@ -576,15 +486,10 @@ void transposition_Lmatrix(str_CSR * csr_mat, str_CSR_colsort * csr_col, str_CSR
 	}
 }
 
-
-/*--------------------------------------------------------
-func name : pre_ICD
-note	  : 不完全コレスキー分解による前処理付き共役勾配法
---------------------------------------------------------*/
 str_CSR_colsort * pre_ICD(str_CSR * csr_mat)
 {
 	int size = csr_mat->row_size;
-	vector<double> vec_d(size);
+	std::vector<double> vec_d(size);
 	str_CSR  csr_l_mat;
 	str_CSR_colsort * csr_col;
 
@@ -595,19 +500,14 @@ str_CSR_colsort * pre_ICD(str_CSR * csr_mat)
 	return csr_col;
 }
 
-
-/*--------------------------------------------------------
-func name : ICCGSolver
-note	  : 不完全コレスキー分解による前処理付き共役勾配法
---------------------------------------------------------*/
-int ICCGSolver(str_CSR * csr_mat, vector<double> vec_b, vector<double> &vec_x, int iter, double eps, str_CSR_colsort * csr_col)
+int ICCGSolver(str_CSR * csr_mat, std::vector<double> vec_b, std::vector<double> &vec_x, int iter, double eps, str_CSR_colsort * csr_col)
 {
 	int size = csr_mat->row_size;
-   	vector<double> vec_p(size);
-   	vector<double> vec_y(size);
-	vector<double> vec_r(size);
-   	vector<double> vec_r2(size);
-	vector<double> vec_d(size);
+   	std::vector<double> vec_p(size);
+   	std::vector<double> vec_y(size);
+	std::vector<double> vec_r(size);
+   	std::vector<double> vec_r2(size);
+	std::vector<double> vec_d(size);
 	vec_x.assign(size, 0);
 
 	str_CSR  csr_l_mat;
@@ -661,11 +561,6 @@ int ICCGSolver(str_CSR * csr_mat, vector<double> vec_b, vector<double> &vec_x, i
 	return 1;
 }
 
-
-/*--------------------------------------------------------
-func name : make_testData
-note	  : テストデータの生成。デバック用
---------------------------------------------------------*/
 void make_testData(str_CSR * csr)
 {
 	csr->val = new double [17];

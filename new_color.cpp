@@ -6,7 +6,7 @@
 //
 // #include <time.h>
 // #include <chrono>
-// #include <vector>
+// #include <std::vector>
 // #include <iostream>
 // #include <opencv2/ximgproc.hpp>
 //
@@ -163,8 +163,8 @@
 //     }
 //     cv::cvtColor(target, target, cv::COLOR_BGR2YCrCb);
 //
-//     std::vector<cv::Mat> src_channels;
-//     std::vector<cv::Mat> dst_channels;
+//     std::std::vector<cv::Mat> src_channels;
+//     std::std::vector<cv::Mat> dst_channels;
 //
 //     cv::split(target,src_channels);
 //
@@ -230,7 +230,7 @@
 #include "opencv2/core/utility.hpp"
 
 #include <time.h>
-#include <vector>
+#include <std::vector>
 #include <iostream>
 #include <opencv2/ximgproc.hpp>
 
@@ -409,8 +409,8 @@ int main(int argc, char** argv)
             filtering_time = (double)getTickCount();
             cv::cvtColor(target, target_temp, cv::COLOR_BGR2YCrCb);
 
-            std::vector<cv::Mat> src_channels;
-            std::vector<cv::Mat> dst_channels;
+            std::std::vector<cv::Mat> src_channels;
+            std::std::vector<cv::Mat> dst_channels;
 
             cv::split(target_temp,src_channels);
 
@@ -438,8 +438,8 @@ int main(int argc, char** argv)
     }
     cv::cvtColor(target, target, cv::COLOR_BGR2YCrCb);
 
-    std::vector<cv::Mat> src_channels;
-    std::vector<cv::Mat> dst_channels;
+    std::std::vector<cv::Mat> src_channels;
+    std::std::vector<cv::Mat> dst_channels;
 
     cv::split(target,src_channels);
 

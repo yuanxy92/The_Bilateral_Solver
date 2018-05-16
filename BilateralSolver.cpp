@@ -50,7 +50,9 @@ int main(int argc, char const *argv[]) {
 
         std::string rgbd_file = argv[3];
 
-        // process(reference,target,spatialSigma,lumaSigma,chromaSigma,fgs_spatialSigma,fgs_colorSigma);
+        process(reference,target,spatialSigma,lumaSigma,chromaSigma,fgs_spatialSigma,fgs_colorSigma);
+
+		return 0;
 
         for (int i = 0; i < 10; i++) {
             std::string idx;
@@ -164,7 +166,7 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
       	std::chrono::steady_clock::time_point start_solver = std::chrono::steady_clock::now();
         cv::Mat result;
         // cv::ximgproc::fastBilateralSolverFilter(reference,filtered_disp,confidence,result,spatialSigma,lumaSigma,chromaSigma);
-        cv::ximgproc::fastBilateralSolverFilter(reference,target,confidence,result,spatialSigma,lumaSigma,chromaSigma,100);
+        cv::ximgproc::fastBilateralSolverFilter(reference,target,confidence,result,spatialSigma,lumaSigma,chromaSigma);
       	std::chrono::steady_clock::time_point end_solver = std::chrono::steady_clock::now();
       	std::cout << "solver time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_solver - start_solver).count() << "ms" << std::endl;
 
@@ -198,7 +200,7 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
         filtering_time = ((float)cv::getTickCount() - filtering_time)/cv::getTickFrequency();
         std::cout<<"Filtering time: "<<filtering_time<<"s"<<std::endl;
 
-    	cv::waitKey(1);
+    	cv::waitKey(0);
 
 }
 void int2str(const int &int_temp,std::string &string_temp)

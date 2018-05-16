@@ -120,10 +120,10 @@ target_link_libraries(${name}
 )
 
 add_executable(bilater BilateralSolver.cpp BilateralSolver.hpp)
-target_link_libraries(bilater ${name} )
+target_link_libraries(bilater ${OpenCV_LIBS} )
 
 add_executable(colorize new_color.cpp)
-target_link_libraries(colorize ${name} )
+target_link_libraries(colorize ${OpenCV_LIBS} )
 
 add_executable(colorize_test color.cpp)
-target_link_libraries(colorize_test ${name} )
+target_link_libraries(colorize_test ${OpenCV_LIBS})

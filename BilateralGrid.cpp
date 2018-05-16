@@ -882,10 +882,10 @@ void BilateralGrid::execute_ICCG(int iter, float eps)
 	#endif
 	float *uv_pix;
 	st_splat * p_splat;
-	vector<double> vec_u_in(bg_size);
-	vector<double> vec_v_in(bg_size);
-	vector<double> vec_u_out(bg_size);
-	vector<double> vec_v_out(bg_size);
+	std::vector<double> vec_u_in(bg_size);
+	std::vector<double> vec_v_in(bg_size);
+	std::vector<double> vec_u_out(bg_size);
+	std::vector<double> vec_v_out(bg_size);
 	int loop_cut;
 
 	#ifdef _DEBUG_
@@ -948,8 +948,8 @@ void BilateralGrid::execute_ICCG_for_depth(int iter, float eps)
 	#endif
 	float *d_pix;
 	st_splat * p_splat;
-	vector<double> vec_d_in(bg_size);
-	vector<double> vec_d_out(bg_size);
+	std::vector<double> vec_d_in(bg_size);
+	std::vector<double> vec_d_out(bg_size);
 	int loop_cut;
 
 	#ifdef _DEBUG_
