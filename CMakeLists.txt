@@ -1,14 +1,74 @@
+# CMake file for GigaRender project
+# Author: Shane Yuan
+# E-mail: yuanxy92@gmail.com
+#
 
-cmake_minimum_required(VERSION 2.8)
-project( Bilateral_solver )
+##
+##                     _oo0oo_
+##                    o8888888o
+##                    88" . "88
+##                    (| -_- |)
+##                    0\  =  /0
+##                  ___/`---'\___
+##                .' \\|     |// '.
+##               / \\|||  :  |||// \
+##              / _||||| -:- |||||- \
+##             |   | \\\  -  /// |   |
+##             | \_|  ''\---/''  |_/ |
+##             \  .-\__  '-'  ___/-. /
+##           ___'. .'  /--.--\  `. .'___
+##        ."" '<  `.___\_<|>_/___.' >' "".
+##       | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+##       \  \ `_.   \_ __\ /__ _/   .-` /  /
+##   =====`-.____`.___ \_____/___.-`___.-'=====
+##                     `=---='
+##
+##             佛祖保佑         永无BUG
+##               Buddha Bless No Bug
+##
 
+message( 
+"##
+##                     _oo0oo_
+##                    o8888888o
+##                    88\" . \"88
+##                    (| -_- |)
+##                    0\\  =  /0
+##                  ___/`---'\\___
+##                .' \\\\|     |// '.
+##               / \\\\|||  :  |||// \\
+##              / _||||| -:- |||||- \\
+##             |   | \\\\\\  -  /// |   |
+##             | \\_|  ''\\---/''  |_/ |
+##             \\  .-\\__  '-'  ___/-. /
+##           ___'. .'  /--.--\\  `. .'___
+##        .\"\" '<  `.___\\_<|>_/___.' >' \"\".
+##       | | :  `- \\`.;`\\ _ /`;.`/ - ` : | |
+##       \\  \\ `_.   \\_ __\\ /__ _/   .-` /  /
+##   =====`-.____`.___ \\_____/___.-`___.-'=====
+##                     `=---='
+##
+##             佛祖保佑         永无BUG
+##               Buddha Bless No Bug
+##
+"
+)
 
-set(CMAKE_BUILD_TYPE "Release")
-#set(CMAKE_BUILD_TYPE "Debug")
+cmake_minimum_required (VERSION 3.10)
+set(name "FastBilateralSolver")
+project ( ${name} )
 
+# set output path
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/bin/Debug)    
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR}/bin/Release)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/bin/Debug)    
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR}/bin/Release)  
 
+# cmake module
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-
+# C++ version
+set (CMAKE_CXX_STANDARD 11)
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -25,76 +85,45 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+# C++ library postfix
+set (CMAKE_DEBUG_POSTFIX "_d")
 
-FIND_PACKAGE( OpenMP REQUIRED)
-if(OPENMP_FOUND)
-message("OPENMP FOUND")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+# OpenCV
+if ( WIN32 )
+	set(OpenCV_DIR "E:/libs/OpenCV/x64/vc14/lib")
+	set(OpenCV_CONFIG_PATH "E:/libs/OpenCV")
+	set(WIN_HEADER_PATH "${PROJECT_SOURCE_DIR}/winheadfile")
+    include_directories(${WIN_HEADER_PATH})
 endif()
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
+# Eigen
+include_directories("E:/libs/Eigen/include/eigen3")
 
-set(OpenCV_DIR "/home/wangkuan/lib/opencv3/share/OpenCV")
-set(Eigen3_DIR "/home/wangkuan/lib/eigen3/share/eigen3/cmake")
+#cuda
+find_package(CUDA)
+set(CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS}
+#    -O3 
+	-gencode=arch=compute_61,code=\"sm_61,compute_61\"
+    )
 
-
-find_package(OpenCV REQUIRED )
-find_package(Eigen3 REQUIRED)
-
-
-message( ${OpenCV_DIR})
-message( ${Eigen3_DIR})
-
-include_directories(
-${OpenCV_INCLUDE_DIRS}
-${EIGEN3_INCLUDE_DIR}
+cuda_add_library(${name} SHARED
+    ICCG.cpp
+    InputImage.cpp
+    BilateralGrid.cpp
 )
 
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-
-
-add_library(${PROJECT_NAME} SHARED
-ICCG.cpp
-InputImage.cpp
-BilateralGrid.cpp
-
+target_link_libraries(${name}
+    ${OpenCV_LIBS}
 )
-
-
-
-
-target_link_libraries(${PROJECT_NAME}
-${OpenCV_LIBS}
-${EIGEN3_LIBS}
-)
-
-#add_executable( Colorize colorization.cpp)
-#target_link_libraries( Colorize ${PROJECT_NAME} )
-
-#add_executable( Depthsuperres depthsuperresolution.cpp)
-#target_link_libraries( Depthsuperres ${PROJECT_NAME} )
-
-#add_executable( Latticefilter permutohedral_lattice.cpp)
-#target_link_libraries( Latticefilter ${PROJECT_NAME} )
-
-#add_executable( depth_solver depth.cpp BilateralSolver.hpp)
-#target_link_libraries( depth_solver ${PROJECT_NAME} )
-
-#add_executable( color_solver color.cpp BilateralSolver.hpp)
-#target_link_libraries( color_solver ${PROJECT_NAME} )
 
 add_executable(bilater BilateralSolver.cpp BilateralSolver.hpp)
-target_link_libraries(bilater ${PROJECT_NAME} )
+target_link_libraries(bilater ${name} )
 
 add_executable(colorize new_color.cpp)
-target_link_libraries(colorize ${PROJECT_NAME} )
+target_link_libraries(colorize ${name} )
 
 add_executable(colorize_test color.cpp)
-target_link_libraries(colorize_test ${PROJECT_NAME} )
-
-
-#add_executable(SparseMatrix  Sparse-Matrix/src/SparseMatrix/SparseMatrix.cpp Sparse-Matrix/tests/run.cpp)
-#target_link_libraries( SparseMatrix ${PROJECT_NAME} )
+target_link_libraries(colorize_test ${name} )
