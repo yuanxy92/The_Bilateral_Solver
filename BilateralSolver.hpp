@@ -3,24 +3,17 @@
 #ifndef _FastBilateralSolverFilterImpl_HPP_
 #define _FastBilateralSolverFilterImpl_HPP_
 
-
-
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 #include <Eigen/SparseCholesky>
 #include <Eigen/IterativeLinearSolvers>
 #include <Eigen/Sparse>
 
-
-
-
 #include<opencv2/core/core.hpp>
 #include<opencv2/core/eigen.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/opencv.hpp>
 #include <opencv2/ximgproc.hpp>
-
-
 
 #include <cmath>
 #include <chrono>
@@ -41,23 +34,38 @@ namespace ximgproc
 class FastBilateralSolverFilter : public Algorithm
 {
 public:
-    CV_WRAP virtual void filter(InputArray src, InputArray confidence, OutputArray dst) = 0;
+    CV_WRAP virtual void filter(
+		InputArray src, 
+		InputArray confidence, 
+		OutputArray dst) = 0;
 };
 
 
-CV_EXPORTS_W Ptr<FastBilateralSolverFilter> createFastBilateralSolverFilter(InputArray guide, double sigma_spatial = 8.0f, double sigma_luma = 8.0f, double sigma_chroma = 8.0f);
+CV_EXPORTS_W Ptr<FastBilateralSolverFilter> createFastBilateralSolverFilter(
+	InputArray guide, 
+	double sigma_spatial = 8.0f, 
+	double sigma_luma = 8.0f, 
+	double sigma_chroma = 8.0f);
 
-CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, InputArray confidence, OutputArray dst, double sigma_spatial, double sigma_luma, double sigma_chroma);
-
-
+CV_EXPORTS_W void fastBilateralSolverFilter(
+	InputArray guide, 
+	InputArray src, 
+	InputArray confidence, 
+	OutputArray dst, 
+	double sigma_spatial, 
+	double sigma_luma, 
+	double sigma_chroma);
 
 
     class FastBilateralSolverFilterImpl : public FastBilateralSolverFilter
     {
     public:
 
-        static Ptr<FastBilateralSolverFilterImpl> create(InputArray guide, double sigma_spatial, double sigma_luma, double sigma_chroma)
-        {
+        static Ptr<FastBilateralSolverFilterImpl> create(
+			InputArray guide, 
+			double sigma_spatial, 
+			double sigma_luma, 
+			double sigma_chroma) {
             CV_Assert( guide.type() == CV_8UC3 );
             FastBilateralSolverFilterImpl *fbs = new FastBilateralSolverFilterImpl();
             Mat gui = guide.getMat();
@@ -67,21 +75,19 @@ CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, In
 
         // FastBilateralSolverFilterImpl(){}
 
-        void filter(InputArray& src, InputArray& confidence, OutputArray& dst)
-        {
-
+        void filter(
+			InputArray& src, 
+			InputArray& confidence, 
+			OutputArray& dst) {
             CV_Assert( src.type() == CV_8UC1 && confidence.type() == CV_8UC1 && src.size() == confidence.size() );
-            if (src.rows() != rows || src.cols() != cols)
-            {
+            if (src.rows() != rows || src.cols() != cols) {
                 CV_Error(Error::StsBadSize, "Size of the filtered image must be equal to the size of the guide image");
                 return;
             }
-
             dst.create(src.size(), src.type());
             Mat tar = src.getMat();
             Mat con = confidence.getMat();
             Mat out = dst.getMat();
-
             solve(tar,con,out);
         }
 
@@ -110,27 +116,23 @@ CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, In
         Eigen::SparseMatrix<float, Eigen::ColMajor> Dn;
         Eigen::SparseMatrix<float, Eigen::ColMajor> Dm;
 
-          struct grid_params
-          {
+          struct grid_params {
               float spatialSigma;
               float lumaSigma;
               float chromaSigma;
-              grid_params()
-              {
+              grid_params() {
                   spatialSigma = 8.0;
                   lumaSigma = 4.0;
                   chromaSigma = 4.0;
               }
           };
 
-          struct bs_params
-          {
+          struct bs_params {
               float lam;
               float A_diag_min;
               float cg_tol;
               int cg_maxiter;
-              bs_params()
-              {
+              bs_params() {
                   lam = 128.0;
                   A_diag_min = 1e-5;
                   cg_tol = 1e-5;
@@ -145,35 +147,31 @@ CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, In
 
 
 
-    void FastBilateralSolverFilterImpl::init(cv::Mat& reference_bgr, double sigma_spatial, double sigma_luma, double sigma_chroma)
-    {
+    void FastBilateralSolverFilterImpl::init(
+		cv::Mat& reference_bgr, 
+		double sigma_spatial, 
+		double sigma_luma, 
+		double sigma_chroma) {
+	    cv::Mat reference_yuv;
+	    cv::cvtColor(reference_bgr, reference_yuv, COLOR_BGR2YCrCb);
+	    std::chrono::steady_clock::time_point begin_grid_construction = std::chrono::steady_clock::now();
+	    cols = reference_yuv.cols;
+	    rows = reference_yuv.rows;
+		npixels = cols*rows;
+	    std::int64_t hash_vec[5];
+	    for (int i = 0; i < 5; ++i)
+			hash_vec[i] = static_cast<std::int64_t>(std::pow(256, i));
 
-	      cv::Mat reference_yuv;
-	      cv::cvtColor(reference_bgr, reference_yuv, COLOR_BGR2YCrCb);
+	    std::unordered_map<std::int64_t /* hash */, int /* vert id */> hashed_coords;
+	    hashed_coords.reserve(cols*rows);
 
-	      std::chrono::steady_clock::time_point begin_grid_construction = std::chrono::steady_clock::now();
-
-	      cols = reference_yuv.cols;
-	      rows = reference_yuv.rows;
-        npixels = cols*rows;
-	      std::int64_t hash_vec[5];
-	      for (int i = 0; i < 5; ++i)
-		        hash_vec[i] = static_cast<std::int64_t>(std::pow(255, i));
-
-	      std::unordered_map<std::int64_t /* hash */, int /* vert id */> hashed_coords;
-	      hashed_coords.reserve(cols*rows);
-
-	      const unsigned char* pref = (const unsigned char*)reference_yuv.data;
-	      int vert_idx = 0;
-	      int pix_idx = 0;
-
-
+	    const unsigned char* pref = (const unsigned char*)reference_yuv.data;
+	    int vert_idx = 0;
+	    int pix_idx = 0;
       	// construct Splat(Slice) matrices
         splat_idx.resize(npixels);
-    	  for (int y = 0; y < rows; ++y)
-      	{
-    	    for (int x = 0; x < cols; ++x)
-      		{
+    	for (int y = 0; y < rows; ++y) {
+    	    for (int x = 0; x < cols; ++x) {
       			std::int64_t coord[5];
       			coord[0] = int(x / sigma_spatial);
       			coord[1] = int(y / sigma_spatial);
@@ -190,23 +188,19 @@ CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, In
       			// We only want to keep a unique list of hash values, therefore make sure we only insert
       			// unique hash values.
       			std::unordered_map<int64_t,int>::iterator it = hashed_coords.find(hash_coord);
-      			if (it == hashed_coords.end())
-      			{
+      			if (it == hashed_coords.end()) {
       				hashed_coords.insert(std::pair<std::int64_t, int>(hash_coord, vert_idx));
-              splat_idx[pix_idx] = vert_idx;
+					splat_idx[pix_idx] = vert_idx;
       				++vert_idx;
       			}
-      			else
-      			{
-              splat_idx[pix_idx] = it->second;
+      			else {
+					splat_idx[pix_idx] = it->second;
       			}
-
       			pref += 3; // skip 3 bytes (y u v)
       			++pix_idx;
       		}
       	}
         nvertices = hashed_coords.size();
-
 
       	// construct Blur matrices
       	std::chrono::steady_clock::time_point begin_blur_construction = std::chrono::steady_clock::now();
@@ -214,26 +208,22 @@ CV_EXPORTS_W void fastBilateralSolverFilter(InputArray guide, InputArray src, In
         Eigen::VectorXf ones_npixels = Eigen::VectorXf::Ones(npixels);
         blurs_test = ones_nvertices.asDiagonal();
         blurs_test *= 10;
-        for(int offset = -1; offset <= 1;++offset)
-        {
+        for(int offset = -1; offset <= 1;++offset) {
             if(offset == 0) continue;
-          	for (int i = 0; i < 5; ++i)
-          	{
-          	     Eigen::SparseMatrix<float, Eigen::ColMajor> blur_temp(hashed_coords.size(), hashed_coords.size());
-                 blur_temp.reserve(Eigen::VectorXi::Constant(nvertices,6));
-          		   std::int64_t offset_hash_coord = offset * hash_vec[i];
-        		     for (std::unordered_map<int64_t,int>::iterator it = hashed_coords.begin(); it != hashed_coords.end(); ++it)
-      		       {
-      			         std::int64_t neighb_coord = it->first + offset_hash_coord;
-      			         std::unordered_map<int64_t,int>::iterator it_neighb = hashed_coords.find(neighb_coord);
-      			         if (it_neighb != hashed_coords.end())
-          			     {
+          	for (int i = 0; i < 5; ++i) {
+          		Eigen::SparseMatrix<float, Eigen::ColMajor> blur_temp(hashed_coords.size(), hashed_coords.size());
+                blur_temp.reserve(Eigen::VectorXi::Constant(nvertices,6));
+          		std::int64_t offset_hash_coord = offset * hash_vec[i];
+        		for (std::unordered_map<int64_t,int>::iterator it = hashed_coords.begin(); it != hashed_coords.end(); ++it) {
+      				std::int64_t neighb_coord = it->first + offset_hash_coord;
+      			    std::unordered_map<int64_t,int>::iterator it_neighb = hashed_coords.find(neighb_coord);
+      			    if (it_neighb != hashed_coords.end()) {
                          blur_temp.insert(it->second,it_neighb->second) = 1.0f;
                          blur_idx.push_back(std::pair<int,int>(it->second, it_neighb->second));
-          			     }
-          		   }
-                 blurs_test += blur_temp;
-              }
+          			}
+          		}
+                blurs_test += blur_temp;
+			}
         }
         blurs_test.finalize();
 
