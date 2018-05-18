@@ -1,11 +1,12 @@
 from skimage.io import imread
+from skimage.io import imsave
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from BilateralGrid import *
 from BilateralSolver import *
 
-data_folder = os.path.abspath(os.path.join(os.path.curdir, '..', 'data'))
+data_folder = 'E:\\Project\\FastBilateralSolver\\data'
 
 # The RGB image that whose edges we will respect
 reference = imread(os.path.join(data_folder, 'reference.png'))
@@ -45,6 +46,8 @@ output_filter = (tc_filt / c_filt).reshape(im_shape)
 
 output_solver = BilateralSolver(grid, bs_params).solve(t, c).reshape(im_shape)
 
+imsave('refined_depth.png', output_filter)
+
 plt.figure('bilateral solver')
-plt.imshow(output_solver)
+plt.imshow(output_filter)
 plt.show()

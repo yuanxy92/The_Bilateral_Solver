@@ -79,12 +79,12 @@ CV_EXPORTS_W void fastBilateralSolverFilter(
 			InputArray& src, 
 			InputArray& confidence, 
 			OutputArray& dst) {
-            CV_Assert( src.type() == CV_8UC1 && confidence.type() == CV_8UC1 && src.size() == confidence.size() );
+            //CV_Assert( src.type() == CV_8UC1 && confidence.type() == CV_8UC1 && src.size() == confidence.size() );
             if (src.rows() != rows || src.cols() != cols) {
                 CV_Error(Error::StsBadSize, "Size of the filtered image must be equal to the size of the guide image");
                 return;
             }
-            dst.create(src.size(), src.type());
+            dst.create(src.size(), CV_32F);
             Mat tar = src.getMat();
             Mat con = confidence.getMat();
             Mat out = dst.getMat();
@@ -207,8 +207,8 @@ CV_EXPORTS_W void fastBilateralSolverFilter(
         Eigen::VectorXf ones_nvertices = Eigen::VectorXf::Ones(nvertices);
         Eigen::VectorXf ones_npixels = Eigen::VectorXf::Ones(npixels);
         blurs_test = ones_nvertices.asDiagonal();
-        blurs_test *= 10;
-        for(int offset = -1; offset <= 1;++offset) {
+        blurs_test *= 2;
+        for(int offset = -1; offset <= 1; offset += 2) {
             if(offset == 0) continue;
           	for (int i = 0; i < 5; ++i) {
           		Eigen::SparseMatrix<float, Eigen::ColMajor> blur_temp(hashed_coords.size(), hashed_coords.size());
@@ -267,7 +267,7 @@ CV_EXPORTS_W void fastBilateralSolverFilter(
     void FastBilateralSolverFilterImpl::Blur(Eigen::VectorXf& input, Eigen::VectorXf& output)
     {
         output.setZero();
-        output = input * 10;
+        output = input * 2;
         for (int i = 0; i < blur_idx.size(); i++)
         {
             output(blur_idx[i].first) += input(blur_idx[i].second);
@@ -292,15 +292,15 @@ CV_EXPORTS_W void fastBilateralSolverFilter(
         Eigen::VectorXf x(npixels);
         Eigen::VectorXf w(npixels);
 
-      	const uchar *pft = reinterpret_cast<const uchar*>(target.data);
+      	const float *pft = reinterpret_cast<const float*>(target.data);
       	for (int i = 0; i < npixels; i++)
       	{
-      		  x(i) = float(pft[i])/255.0f;
+      		  x(i) = pft[i];
         }
-      	const uchar *pfc = reinterpret_cast<const uchar*>(confidence.data);
+      	const float *pfc = reinterpret_cast<const float*>(confidence.data);
       	for (int i = 0; i < npixels; i++)
       	{
-      		  w(i) = float(pfc[i])/255.0f;
+      		  w(i) = pfc[i];
         }
 
         Eigen::SparseMatrix<float, Eigen::ColMajor> M(nvertices,nvertices);
@@ -334,10 +334,10 @@ CV_EXPORTS_W void fastBilateralSolverFilter(
         // std::cout << "estimated error: " << cg.error()      << std::endl;
 
         //slice
-      	uchar *pftar = (uchar*)(output.data);
+      	float *pftar = (float*)(output.data);
       	for (int i = 0; i < splat_idx.size(); i++)
       	{
-      		  pftar[i] = y(splat_idx[i]) * 255;
+      		  pftar[i] = y(splat_idx[i]);
         }
 
 

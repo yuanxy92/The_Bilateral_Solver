@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "hello solver" << '\n';
 
         cv::Mat reference = cv::imread(argv[1],1);
-        cv::Mat target = cv::imread(argv[2],0);
+        cv::Mat target = cv::imread(argv[2], cv::IMREAD_ANYDEPTH);
         // cv::Mat confidence = cv::imread(argv[3],0);
         float spatialSigma = float(atof(argv[4]));      //8.0
         float lumaSigma = float(atof(argv[5]));         //8.0
@@ -111,23 +111,24 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
         {
             for(int j = 0; j < target.cols;j++)
             {
-                if(target.at<uchar>(i,j) != 0 && reference.at<cv::Vec3b>(i,j)[0] != 0) confidence.at<uchar>(i,j) = 255;
+                if(target.at<unsigned short>(i,j) != 0 && reference.at<cv::Vec3b>(i,j)[0] != 0) 
+					confidence.at<uchar>(i,j) = 255;
             }
         }
 
-        for(int i = 0; i < target.rows;i++)
-        {
-            for(int j = 0; j < target.cols;j++)
-            {
-                if(target.at<uchar>(i,j) != 0 && reference.at<cv::Vec3b>(i,j)[0] != 0) target.at<uchar>(i,j) = 255-target.at<uchar>(i,j);
-            }
-        }
+        //for(int i = 0; i < target.rows;i++)
+        //{
+        //    for(int j = 0; j < target.cols;j++)
+        //    {
+        //        if(target.at<uchar>(i,j) != 0 && reference.at<cv::Vec3b>(i,j)[0] != 0) target.at<uchar>(i,j) = 255-target.at<uchar>(i,j);
+        //    }
+        //}
 
 
 
         filtering_time = (float)cv::getTickCount();
 
-        cv::equalizeHist(target, target);
+        //cv::equalizeHist(target, target);
 
 
 #define ENABLE_FGS_FILTER
@@ -139,8 +140,8 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
         cv::Mat filtered_xw;
         cv::Mat filtered_w;
         cv::Mat filtered_disp;
-	      target.convertTo(x, CV_32FC1, 1.0f/255.0f);
-	      confidence.convertTo(w, CV_32FC1);
+	      target.convertTo(x, CV_32FC1, 1.0f/(255.0f * 255.0f));
+	      confidence.convertTo(w, CV_32FC1, 1.0f/255.0f);
         xw = x.mul(w);
         cv::ximgproc::fastGlobalSmootherFilter(reference, xw, filtered_xw, fgs_spatialSigma, fgs_colorSigma);
         cv::ximgproc::fastGlobalSmootherFilter(reference, w, filtered_w, fgs_spatialSigma, fgs_colorSigma);
@@ -166,12 +167,12 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
       	std::chrono::steady_clock::time_point start_solver = std::chrono::steady_clock::now();
         cv::Mat result;
         // cv::ximgproc::fastBilateralSolverFilter(reference,filtered_disp,confidence,result,spatialSigma,lumaSigma,chromaSigma);
-        cv::ximgproc::fastBilateralSolverFilter(reference,target,confidence,result,spatialSigma,lumaSigma,chromaSigma);
+        cv::ximgproc::fastBilateralSolverFilter(reference, x, w,result,spatialSigma,lumaSigma,chromaSigma);
       	std::chrono::steady_clock::time_point end_solver = std::chrono::steady_clock::now();
       	std::cout << "solver time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_solver - start_solver).count() << "ms" << std::endl;
 
 
-      cv::equalizeHist(result, result);
+      //cv::equalizeHist(result, result);
       // cv::normalize(result,result,255,0,cv::NORM_MINMAX);
     	cv::imshow("input",reference);
     	cv::imshow("target",target);
@@ -199,6 +200,10 @@ void process(cv::Mat reference,cv::Mat target,float spatialSigma,float lumaSigma
 #endif
         filtering_time = ((float)cv::getTickCount() - filtering_time)/cv::getTickFrequency();
         std::cout<<"Filtering time: "<<filtering_time<<"s"<<std::endl;
+
+		cv::Mat output;
+		result.convertTo(output, CV_8U, 255.0f);
+		cv::imwrite("depth_refine_cpp.png", output);
 
     	cv::waitKey(0);
 

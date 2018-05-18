@@ -1,7 +1,7 @@
 from scipy.sparse import csr_matrix
 import numpy as np
 
-MAX_VAL = 255.0
+MAX_VAL = 256.0
 RGB_TO_YUV = np.array([
     [ 0.299,     0.587,     0.114],
     [-0.168736, -0.331264,  0.5],
